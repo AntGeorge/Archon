@@ -39,7 +39,7 @@ function chroot_stage {
 	echo '---------------------------------------------'
 	sleep 2
 	echo
-	read -rp "Δώστε όνομα υπολογιστή (hostname): " hostvar
+	read ${hostvar:+"-t0"} -rp "Δώστε όνομα υπολογιστή (hostname): " hostvar
 	echo "$hostvar" > /etc/hostname
 	echo
 	sleep 2
@@ -98,8 +98,8 @@ function chroot_stage {
 	echo '---------------------------------------'
 	sleep 2
 	while true; do
-		read -rp "Θέλετε να εγκαταστήσετε πυρήνα μακράς υποστήριξης (Long Term Support) (y/n); " yn
-		case $yn in
+		read ${ltssupp:+"-t0"} -rp "Θέλετε να εγκαταστήσετε πυρήνα μακράς υποστήριξης (Long Term Support) (y/n); " ltssupp
+		case $ltssupp in
 			[Yy]* ) sudo pacman -S --noconfirm linux-lts; break;;
 			[Nn]* ) break;;
 			* ) echo "μη έγκυρη απάντηση";;
@@ -121,7 +121,7 @@ function chroot_stage {
 		grub-mkconfig -o /boot/grub/grub.cfg
 	else
 		pacman -S --noconfirm grub os-prober
-		read -rp " Σε ποιο δίσκο θέλετε να εγκατασταθεί ο grub (/dev/sd?); " grubvar
+		read ${grubvar:+"-t0"} -rp " Σε ποιο δίσκο θέλετε να εγκατασταθεί ο grub (/dev/sd?); " grubvar
 		grub-install --target=i386-pc --recheck "$grubvar"
 		grub-mkconfig -o /boot/grub/grub.cfg
 	fi
@@ -138,7 +138,7 @@ function chroot_stage {
 	echo '-------------------------------------'
 	echo
 	sleep 2
-	read -rp "Δώστε παρακαλώ νέο όνομα χρήστη: " onomaxristi
+	read ${onomaxristi:+"-t0"} -rp "Δώστε παρακαλώ νέο όνομα χρήστη: " onomaxristi
 	useradd -m -G wheel -s /bin/bash "$onomaxristi"
 	#########################################################
 	until passwd "$onomaxristi"								# Μέχρι να είναι επιτυχής
@@ -196,11 +196,18 @@ clear
 #Έλεγχος chroot
 while test $# -gt 0; do
 	case "$1" in
-		--stage)
+		--conf)
 			shift
-			if [ "$1" == "chroot" ]; then
-				chroot_stage
+			if [[ "$1" != *.config ]]; then
+				echo "Παρακαλώ δώστε το αρχείο ρυθμίσεων (*.config)"
 				exit
+			elif [ ! -e "$1" ]; then
+				echo "Το αρχείο $1 δεν βρέθηκε"
+				exit
+			else
+				echo "Το αρχείο $1 εντοπίστηκε"
+				confFile=$1
+				. "$confFile"
 			fi
 			shift
 			;;
@@ -285,7 +292,7 @@ lsblk | grep -i sd
 echo
 echo
 echo '--------------------------------------------------------'
-read -rp " Σε ποιο δίσκο (/dev/sd?) θα εγκατασταθεί το Arch; " diskvar
+read ${diskvar:+"-t0"} -rp " Σε ποιο δίσκο (/dev/sd?) θα εγκατασταθεί το Arch; " diskvar
 echo '--------------------------------------------------------'
 echo
 echo
@@ -321,9 +328,9 @@ else
 	echo " Χρησιμοποιείς PC με BIOS";
 	echo
 	sleep 1
-	parted "$diskvar" mklabel msdos
-	parted "$diskvar" mkpart primary ext4 1MiB 100%
-	mkfs.ext4 "$diskvar""1"
+	parted ${confFile:+"-s"} "$diskvar" mklabel msdos
+	parted ${confFile:+"-s"} "$diskvar" mkpart primary ext4 1MiB 100%
+	mkfs.ext4 ${confFile:+"-F"} "$diskvar""1"
 	mount "$diskvar""1" "/mnt"
 fi
 sleep 1
