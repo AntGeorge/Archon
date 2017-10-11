@@ -362,9 +362,13 @@ echo '                                                        '
 echo ' Τώρα θα γίνει είσοδος στο εγκατεστημένο Arch Linux     '
 echo '--------------------------------------------------------'
 sleep 1
-cp archon.sh /mnt/archon.sh
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt ./archon.sh --stage chroot
+if [ -f "./$confFile" ]; then
+	cp "./$confFile" /mnt
+	arch-chroot /mnt bash -c "$(declare -f chroot_stage); . ./$confFile; chroot_stage"
+else
+	arch-chroot /mnt bash -c "$(declare -f chroot_stage); chroot_stage"
+fi
 echo
 echo
 echo '--------------------------------------------------------'
