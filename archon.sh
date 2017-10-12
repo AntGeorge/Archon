@@ -39,8 +39,8 @@ function chroot_stage {
 	echo '---------------------------------------------'
 	sleep 2
 	echo
-	read ${hostvar:+"-t0"} -rp "Δώστε όνομα υπολογιστή (hostname): " hostvar
-	echo "$hostvar" > /etc/hostname
+	read ${HOSTNAME:+"-t0"} -rp "Δώστε όνομα υπολογιστή (hostname): " HOSTNAME
+	echo "$HOSTNAME" > /etc/hostname
 	echo
 	sleep 2
 	echo '-------------------------------------'
@@ -98,8 +98,8 @@ function chroot_stage {
 	echo '---------------------------------------'
 	sleep 2
 	while true; do
-		read ${ltssupp:+"-t0"} -rp "Θέλετε να εγκαταστήσετε πυρήνα μακράς υποστήριξης (Long Term Support) (y/n); " ltssupp
-		case $ltssupp in
+		read ${LTSSUPP:+"-t0"} -rp "Θέλετε να εγκαταστήσετε πυρήνα μακράς υποστήριξης (Long Term Support) (y/n); " LTSSUPP
+		case $LTSSUPP in
 			[Yy]* ) sudo pacman -S --noconfirm linux-lts; break;;
 			[Nn]* ) break;;
 			* ) echo "μη έγκυρη απάντηση";;
@@ -121,8 +121,8 @@ function chroot_stage {
 		grub-mkconfig -o /boot/grub/grub.cfg
 	else
 		pacman -S --noconfirm grub os-prober
-		read ${grubvar:+"-t0"} -rp " Σε ποιο δίσκο θέλετε να εγκατασταθεί ο grub (/dev/sd?); " grubvar
-		grub-install --target=i386-pc --recheck "$grubvar"
+		read ${GRUB_INST:+"-t0"} -rp " Σε ποιο δίσκο θέλετε να εγκατασταθεί ο grub (/dev/sd?); " GRUB_INST
+		grub-install --target=i386-pc --recheck "$GRUB_INST"
 		grub-mkconfig -o /boot/grub/grub.cfg
 	fi
 	sleep 2
@@ -138,17 +138,17 @@ function chroot_stage {
 	echo '-------------------------------------'
 	echo
 	sleep 2
-	read ${onomaxristi:+"-t0"} -rp "Δώστε παρακαλώ νέο όνομα χρήστη: " onomaxristi
-	useradd -m -G wheel -s /bin/bash "$onomaxristi"
+	read ${USERNAME:+"-t0"} -rp "Δώστε παρακαλώ νέο όνομα χρήστη: " USERNAME
+	useradd -m -G wheel -s /bin/bash "$USERNAME"
 	#########################################################
-	until passwd "$onomaxristi"								# Μέχρι να είναι επιτυχής
+	until passwd "$USERNAME"								# Μέχρι να είναι επιτυχής
 	do														# η αλλαγή του κωδικού 
 	echo													# του χρήστη, θα 
 	echo "O κωδικός του χρήστη δεν άλλαξε, δοκιμάστε ξανά!"	# τυπώνεται αυτό το μήνυμα
 	echo													#
 	done													#
 	#########################################################
-	echo "$onomaxristi ALL=(ALL) ALL" >> /etc/sudoers
+	echo "$USERNAME ALL=(ALL) ALL" >> /etc/sudoers
 	echo
 	echo
 	echo '-------------------------------------'
@@ -292,12 +292,12 @@ lsblk | grep -i sd
 echo
 echo
 echo '--------------------------------------------------------'
-read ${diskvar:+"-t0"} -rp " Σε ποιο δίσκο (/dev/sd?) θα εγκατασταθεί το Arch; " diskvar
+read ${HDD_INST:+"-t0"} -rp " Σε ποιο δίσκο (/dev/sd?) θα εγκατασταθεί το Arch; " HDD_INST
 echo '--------------------------------------------------------'
 echo
 echo
 echo '--------------------------------------------------------'
-echo " Η εγκατάσταση θα γίνει στον $diskvar"
+echo " Η εγκατάσταση θα γίνει στον $HDD_INST"
 echo '--------------------------------------------------------'
 sleep 1
 echo
@@ -315,23 +315,23 @@ if [ -d /sys/firmware/efi ]; then
 	echo " Χρησιμοποιείς PC με UEFI";
 	echo
 	sleep 1
-	parted "$diskvar" mklabel gpt
-	parted "$diskvar" mkpart ESP fat32 1MiB 513MiB
-	parted "$diskvar" mkpart primary ext4 513MiB 100%
-	mkfs.fat -F32 "$diskvar""1"
-	mkfs.ext4 "$diskvar""2"
-	mount "$diskvar""2" "/mnt"
+	parted "$HDD_INST" mklabel gpt
+	parted "$HDD_INST" mkpart ESP fat32 1MiB 513MiB
+	parted "$HDD_INST" mkpart primary ext4 513MiB 100%
+	mkfs.fat -F32 "$HDD_INST""1"
+	mkfs.ext4 "$HDD_INST""2"
+	mount "$HDD_INST""2" "/mnt"
 	mkdir "/mnt/boot"
-	mount "$diskvar""1" "/mnt/boot"
+	mount "$HDD_INST""1" "/mnt/boot"
 else
 	echo	
 	echo " Χρησιμοποιείς PC με BIOS";
 	echo
 	sleep 1
-	parted ${confFile:+"-s"} "$diskvar" mklabel msdos
-	parted ${confFile:+"-s"} "$diskvar" mkpart primary ext4 1MiB 100%
-	mkfs.ext4 ${confFile:+"-F"} "$diskvar""1"
-	mount "$diskvar""1" "/mnt"
+	parted ${confFile:+"-s"} "$HDD_INST" mklabel msdos
+	parted ${confFile:+"-s"} "$HDD_INST" mkpart primary ext4 1MiB 100%
+	mkfs.ext4 ${confFile:+"-F"} "$HDD_INST""1"
+	mount "$HDD_INST""1" "/mnt"
 fi
 sleep 1
 echo
