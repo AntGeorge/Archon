@@ -11,7 +11,14 @@
 # Please read the file LICENSE, README and AUTHORS for more information.
 #
 #
+help_msg="Archon (Άρχων) είναι ένα cli (command-line interface) για την εγκατάσταση του βασικού συστήματος Arch linux χωρίς γραφικό περιβάλλον.
 
+Επιλογές:
+	-h, --help\t εμφανίζει αυτό το μενού.
+	-c, --config\t Εισάγει το αρχείο ρυθμίσεων.
+
+		παράδειγμα: sh archon.sh -c archon.config
+"
 
 function chroot_stage {
 	echo
@@ -209,6 +216,11 @@ while test $# -gt 0; do
 				confFile=$1
 				. "$confFile"
 			fi
+			shift
+			;;
+		-h|--help)
+			echo -e "$help_msg"
+			exit
 			shift
 			;;
 		*)
