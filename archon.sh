@@ -200,21 +200,19 @@ function chroot_stage {
 clear
 
 
-#Έλεγχος chroot
 while test $# -gt 0; do
 	case "$1" in
-		--conf)
+		-c|--config)
 			shift
-			if [[ "$1" != *.config ]]; then
+			if [[ $1 != *.config ]]; then
 				echo "Παρακαλώ δώστε το αρχείο ρυθμίσεων (*.config)"
 				exit
-			elif [ ! -e "$1" ]; then
+			elif [[ ! -e $1 ]]; then
 				echo "Το αρχείο $1 δεν βρέθηκε"
 				exit
 			else
-				echo "Το αρχείο $1 εντοπίστηκε"
 				confFile=$1
-				. "$confFile"
+				. "./$confFile"
 			fi
 			shift
 			;;
@@ -224,7 +222,8 @@ while test $# -gt 0; do
 			shift
 			;;
 		*)
-			shift
+			echo "Λανθασμένη παράμετρος $1"
+			exit
 			;;
 	esac
 done
